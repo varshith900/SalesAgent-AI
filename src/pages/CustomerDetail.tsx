@@ -106,7 +106,7 @@ const CustomerDetail = () => {
 
   const callAI = async (type: string, customerData: Customer) => {
     const response = await supabase.functions.invoke("sales-agent", {
-      body: { type, customer: customerData },
+      body: { type, customerId: customerData.id },
     });
     if (response.error) throw new Error(response.error.message);
     return response.data?.result || "";
@@ -122,7 +122,7 @@ const CustomerDetail = () => {
 
     try {
       const response = await supabase.functions.invoke("send-email", {
-        body: { to: cust.email, subject, body, customerName: cust.name },
+        body: { customerId: cust.id, subject, body },
       });
       if (response.error) throw new Error(response.error.message);
       if (response.data?.error) throw new Error(response.data.error);
