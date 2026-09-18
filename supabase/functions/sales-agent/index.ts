@@ -1,9 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
 const prompts: Record<string, (c: any) => string> = {
   summary: (c) => `You are a sales analyst. Provide a concise account summary for this customer:\n\nName: ${c.name}\nCompany: ${c.company}\nIndustry: ${c.industry || "Unknown"}\nDeal Size: $${c.deal_size || 0}\nBudget: $${c.budget || 0}\nDeal Stage: ${c.deal_stage}\nProducts Interested: ${(c.products_interested || []).join(", ")}\nLast Interaction: ${c.last_interaction_date || "Unknown"}\nNotes: ${c.notes || "None"}\n\nProvide a 3-4 sentence professional summary of this account.`,
@@ -17,16 +24,61 @@ const prompts: Record<string, (c: any) => string> = {
   proposal: (c) => `You are a sales proposal writer. Create a structured sales proposal:\n\nClient: ${c.name}\nCompany: ${c.company}\nIndustry: ${c.industry || "General"}\nProducts: ${(c.products_interested || []).join(", ")}\nDeal Size: $${c.deal_size || 0}\nBudget: $${c.budget || 0}\nNotes: ${c.notes || "None"}\n\nCreate a proposal with these sections:\n1. Executive Summary\n2. Client Overview\n3. Proposed Solution\n4. Pricing & Investment\n5. Key Benefits\n6. Next Steps / Call to Action\n\nMake it professional and persuasive.\n\nIMPORTANT: Use "Prepared By: SalesAgent AI Team, SalesAgent AI" instead of any placeholder like [Your Name] or [Company Name]. For contact information, use: contact.salesagentai@gmail.com. Do NOT use placeholders like [Your Name], [Your Title], [Your Contact Information], or [Your Name/Company Name].`,
 };
 
+// Simple in-memory per-user rate limit (best effort, per instance)
+const RATE_LIMIT = 30;
+const WINDOW_MS = 60_000;
+const hits = new Map<string, number[]>();
+
+function rateLimited(userId: string) {
+  const now = Date.now();
+  const recent = (hits.get(userId) || []).filter((t) => now - t < WINDOW_MS);
+  recent.push(now);
+  hits.set(userId, recent);
+  return recent.length > RATE_LIMIT;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { type, customer } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const user = userData?.user;
+    if (userError || !user) return json({ error: "Unauthorized" }, 401);
+
+    if (rateLimited(user.id)) return json({ error: "Too many requests. Please slow down." }, 429);
+
+    const payload = await req.json().catch(() => null);
+    const type = typeof payload?.type === "string" ? payload.type : "";
+    const customerId = typeof payload?.customerId === "string" ? payload.customerId : "";
 
     const promptFn = prompts[type];
-    if (!promptFn) throw new Error(`Unknown type: ${type}`);
+    if (!promptFn) return json({ error: "Invalid request" }, 400);
+    if (!/^[0-9a-f-]{36}$/i.test(customerId)) return json({ error: "Invalid request" }, 400);
+
+    // Load the customer server-side; RLS restricts this to the caller's own records
+    const { data: customer, error: customerError } = await supabase
+      .from("customers")
+      .select("*")
+      .eq("id", customerId)
+      .maybeSingle();
+
+    if (customerError) {
+      console.error("customer lookup error:", customerError);
+      return json({ error: "Unable to load customer" }, 500);
+    }
+    if (!customer) return json({ error: "Customer not found" }, 404);
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) return json({ error: "AI is not configured" }, 500);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -44,34 +96,18 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI usage limit reached. Please add credits." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const t = await response.text();
-      console.error("AI error:", response.status, t);
-      throw new Error("AI gateway error");
+      if (response.status === 429) return json({ error: "Rate limit exceeded. Please try again shortly." }, 429);
+      if (response.status === 402) return json({ error: "AI usage limit reached. Please add credits." }, 402);
+      console.error("AI error:", response.status, await response.text());
+      return json({ error: "AI service unavailable" }, 502);
     }
 
     const data = await response.json();
     const result = data.choices?.[0]?.message?.content || "No output generated.";
 
-    return new Response(JSON.stringify({ result }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ result });
   } catch (e) {
     console.error("sales-agent error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: "Unexpected error" }, 500);
   }
 });
