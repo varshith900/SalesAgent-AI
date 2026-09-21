@@ -189,14 +189,12 @@ const Auth = () => {
               aria-hidden="true"
             />
             <div className="glass relative rounded-[1.6rem] border border-border/60 p-7 shadow-elevated backdrop-blur-xl sm:p-9">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={isLogin ? "login" : "signup"}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.28, ease }}
-                >
+              <motion.div
+                key={isLogin ? "login" : "signup"}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease }}
+              >
                   <div className="mb-7">
                     <h2 className="mb-1.5 font-display text-[1.7rem] font-semibold tracking-tight text-foreground">
                       {isLogin ? "Welcome back" : "Create your account"}
