@@ -78,7 +78,7 @@ const Dashboard = () => {
             <Sparkles className="h-5 w-5 text-primary" />
             <span className="text-sm font-medium text-primary tracking-wide uppercase">Dashboard</span>
           </div>
-          <h1 className="text-4xl font-display font-bold text-foreground">
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground">
             Welcome back
           </h1>
           <p className="text-muted-foreground mt-2 text-lg">Here's your sales performance overview.</p>
@@ -103,7 +103,7 @@ const Dashboard = () => {
                       <stat.icon className="h-5 w-5 text-white" />
                     </div>
                   </div>
-                  <p className="text-4xl font-display font-bold text-foreground">
+                  <p className="text-3xl sm:text-4xl font-display font-bold text-foreground">
                     <AnimatedCounter value={stat.value} />
                   </p>
                 </div>

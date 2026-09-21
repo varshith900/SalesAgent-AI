@@ -150,7 +150,7 @@ const AddCustomer = () => {
             <Sparkles className="h-5 w-5 text-primary" />
             <span className="text-sm font-medium text-primary tracking-wide uppercase">New Customer</span>
           </div>
-          <h1 className="text-4xl font-display font-bold text-foreground mb-2">
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground mb-2">
             Add Customer
           </h1>
           <p className="text-muted-foreground text-lg mb-8">
@@ -164,7 +164,7 @@ const AddCustomer = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
           >
-            <Card className="glass rounded-xl p-8 space-y-6">
+            <Card className="glass rounded-xl p-5 sm:p-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField label="Customer Name" id="name" required error={errors.name}>
                   <Input

@@ -96,6 +96,13 @@ serve(async (req) => {
     return json({ success: true, messageId: info.messageId, to });
   } catch (e) {
     console.error("send-email error:", e);
+    const code = (e as { code?: string })?.code;
+    if (code === "EAUTH") {
+      return json(
+        { error: "Email login rejected by Gmail. A valid Gmail address and 16-character App Password are required." },
+        500,
+      );
+    }
     return json({ error: "Email could not be sent" }, 500);
   }
 });

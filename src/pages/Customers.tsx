@@ -85,7 +85,7 @@ const Customers = () => {
         >
           <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
             <div>
-              <h1 className="text-4xl font-display font-bold text-foreground">Customers</h1>
+              <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground">Customers</h1>
               <p className="text-muted-foreground mt-2 text-lg">Manage your sales pipeline</p>
             </div>
             <div className="flex gap-3">
