@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import {
   Bot, Mail, Lock, ArrowRight, ShieldCheck, Zap, Target, FileText, TrendingUp,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="h-[1.15rem] w-[1.15rem]" aria-hidden="true">
@@ -299,7 +299,6 @@ const Auth = () => {
                     </Button>
                   </div>
                 </motion.div>
-              </AnimatePresence>
 
               <div className="mt-5 flex items-center justify-center gap-2 text-xs text-muted-foreground/80">
                 <ShieldCheck className="h-4 w-4 text-primary/80" />
