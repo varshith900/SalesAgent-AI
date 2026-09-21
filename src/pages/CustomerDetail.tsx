@@ -451,16 +451,16 @@ const CustomerDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div>
-            <h1 className="text-4xl font-display font-bold text-foreground">{customer.name}</h1>
-            <div className="flex items-center gap-3 mt-2 text-muted-foreground">
-              <Building className="h-4 w-4" />
-              <span className="text-lg">{customer.company}</span>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground break-words">{customer.name}</h1>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-2 text-muted-foreground">
+              <Building className="h-4 w-4 shrink-0" />
+              <span className="text-base sm:text-lg break-words">{customer.company}</span>
               <Badge className={`${stageColors[customer.deal_stage]} text-xs font-semibold`}>{customer.deal_stage}</Badge>
             </div>
           </div>
-          <div className="flex flex-col gap-3 items-end">
-            <Button variant="agent" size="lg" onClick={runFullAgent} disabled={agentRunning} className="min-w-[220px]">
+          <div className="flex flex-col gap-3 items-stretch md:items-end w-full md:w-auto">
+            <Button variant="agent" size="lg" onClick={runFullAgent} disabled={agentRunning} className="w-full md:w-auto md:min-w-[220px]">
               {agentRunning ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -618,14 +618,14 @@ const CustomerDetail = () => {
                   <Card className={`glass rounded-xl p-6 shadow-card relative overflow-hidden`}>
                     {/* Gradient accent strip */}
                     <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${section.gradient}`} />
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 shrink-0 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                           <section.icon className="h-4.5 w-4.5 text-primary" />
                         </div>
-                        <h3 className="font-display font-semibold text-foreground text-lg">{section.title}</h3>
+                        <h3 className="font-display font-semibold text-foreground text-base sm:text-lg break-words">{section.title}</h3>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 shrink-0">
                         <Button variant="ghost" size="icon" onClick={() => copyToClipboard(content, section.title)} className="hover:text-primary">
                           <Copy className="h-4 w-4" />
                         </Button>
