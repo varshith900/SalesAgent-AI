@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import {
   Bot, Mail, Lock, ArrowRight, ShieldCheck, Zap, Target, FileText, TrendingUp,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="h-[1.15rem] w-[1.15rem]" aria-hidden="true">
@@ -189,14 +189,12 @@ const Auth = () => {
               aria-hidden="true"
             />
             <div className="glass relative rounded-[1.6rem] border border-border/60 p-7 shadow-elevated backdrop-blur-xl sm:p-9">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={isLogin ? "login" : "signup"}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.28, ease }}
-                >
+              <motion.div
+                key={isLogin ? "login" : "signup"}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease }}
+              >
                   <div className="mb-7">
                     <h2 className="mb-1.5 font-display text-[1.7rem] font-semibold tracking-tight text-foreground">
                       {isLogin ? "Welcome back" : "Create your account"}
@@ -301,7 +299,6 @@ const Auth = () => {
                     </Button>
                   </div>
                 </motion.div>
-              </AnimatePresence>
 
               <div className="mt-5 flex items-center justify-center gap-2 text-xs text-muted-foreground/80">
                 <ShieldCheck className="h-4 w-4 text-primary/80" />
