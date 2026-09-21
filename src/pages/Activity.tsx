@@ -76,7 +76,7 @@ const ActivityPage = () => {
             <Activity className="h-5 w-5 text-primary" />
             <span className="text-sm font-medium text-primary tracking-wide uppercase">History</span>
           </div>
-          <h1 className="text-4xl font-display font-bold text-foreground">Activity Log</h1>
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground">Activity Log</h1>
           <p className="text-muted-foreground mt-2 text-lg">History of AI agent runs and generated content</p>
         </motion.div>
 
