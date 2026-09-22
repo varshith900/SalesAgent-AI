@@ -8,6 +8,13 @@
       "when": 1789733179867,
       "tag": "0000_restrict_graphql_exposure",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790046300165,
+      "tag": "0001_add_customer_detail_fields",
+      "breakpoints": true
     }
   ]
 }
