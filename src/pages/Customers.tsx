@@ -37,6 +37,8 @@ const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [stageFilter, setStageFilter] = useState<string>("All");
+  const [pendingDelete, setPendingDelete] = useState<Customer | null>(null);
 
   useEffect(() => {
     if (!user) return;
