@@ -55,57 +55,81 @@ export type Database = {
       customers: {
         Row: {
           budget: number | null
+          city: string | null
           company: string
+          country: string | null
           created_at: string
+          currency: string
           deal_size: number | null
           deal_stage: string
           email: string | null
           id: string
           industry: string | null
+          job_title: string | null
           last_interaction_date: string | null
+          lead_source: string | null
           name: string
+          next_follow_up_date: string | null
           notes: string | null
           phone: string | null
+          phone_country_code: string | null
           priority_score: number | null
           products_interested: string[] | null
           updated_at: string
           user_id: string
+          website: string | null
         }
         Insert: {
           budget?: number | null
+          city?: string | null
           company: string
+          country?: string | null
           created_at?: string
+          currency?: string
           deal_size?: number | null
           deal_stage?: string
           email?: string | null
           id?: string
           industry?: string | null
+          job_title?: string | null
           last_interaction_date?: string | null
+          lead_source?: string | null
           name: string
+          next_follow_up_date?: string | null
           notes?: string | null
           phone?: string | null
+          phone_country_code?: string | null
           priority_score?: number | null
           products_interested?: string[] | null
           updated_at?: string
           user_id: string
+          website?: string | null
         }
         Update: {
           budget?: number | null
+          city?: string | null
           company?: string
+          country?: string | null
           created_at?: string
+          currency?: string
           deal_size?: number | null
           deal_stage?: string
           email?: string | null
           id?: string
           industry?: string | null
+          job_title?: string | null
           last_interaction_date?: string | null
+          lead_source?: string | null
           name?: string
+          next_follow_up_date?: string | null
           notes?: string | null
           phone?: string | null
+          phone_country_code?: string | null
           priority_score?: number | null
           products_interested?: string[] | null
           updated_at?: string
           user_id?: string
+          website?: string | null
         }
         Relationships: []
       }
