@@ -5,7 +5,18 @@ import { AppLayout } from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, ArrowRight } from "lucide-react";
+import { Search, Plus, ArrowRight, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
@@ -26,6 +37,8 @@ const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [stageFilter, setStageFilter] = useState<string>("All");
+  const [pendingDelete, setPendingDelete] = useState<Customer | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -41,12 +54,36 @@ const Customers = () => {
     fetch();
   }, [user]);
 
-  const filtered = customers.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.company.toLowerCase().includes(search.toLowerCase()) ||
-      (c.industry?.toLowerCase().includes(search.toLowerCase()))
-  );
+  const stages = ["All", "Lead", "Contacted", "Demo", "Negotiation", "Closed"];
+
+  const filtered = customers.filter((c) => {
+    const q = search.toLowerCase();
+    const matchesSearch =
+      c.name.toLowerCase().includes(q) ||
+      c.company.toLowerCase().includes(q) ||
+      !!c.industry?.toLowerCase().includes(q);
+    const matchesStage = stageFilter === "All" || c.deal_stage === stageFilter;
+    return matchesSearch && matchesStage;
+  });
+
+  const openDeals = customers.filter((c) => c.deal_stage !== "Closed");
+  const pipelineValue = openDeals.reduce((sum, c) => sum + (c.deal_size || 0), 0);
+  const wonValue = customers
+    .filter((c) => c.deal_stage === "Closed")
+    .reduce((sum, c) => sum + (c.deal_size || 0), 0);
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    const target = pendingDelete;
+    setPendingDelete(null);
+    const { error } = await supabase.from("customers").delete().eq("id", target.id);
+    if (error) {
+      toast.error("Could not delete customer");
+      return;
+    }
+    setCustomers((prev) => prev.filter((c) => c.id !== target.id));
+    toast.success(`${target.name} deleted`);
+  };
 
   const seedData = async () => {
     if (!user) return;
@@ -116,6 +153,49 @@ const Customers = () => {
             className="pl-11 bg-secondary/50 border-border max-w-lg focus-glow h-11"
           />
         </motion.div>
+
+        {!loading && customers.length > 0 && (
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.18 }}
+          >
+            <div className="glass rounded-xl p-4 shadow-card">
+              <p className="text-xs text-muted-foreground">Open deals</p>
+              <p className="text-2xl font-display font-bold text-foreground">{openDeals.length}</p>
+            </div>
+            <div className="glass rounded-xl p-4 shadow-card">
+              <p className="text-xs text-muted-foreground">Pipeline value</p>
+              <p className="text-2xl font-display font-bold text-primary">${pipelineValue.toLocaleString()}</p>
+            </div>
+            <div className="glass rounded-xl p-4 shadow-card col-span-2 sm:col-span-1">
+              <p className="text-xs text-muted-foreground">Closed won</p>
+              <p className="text-2xl font-display font-bold text-success">${wonValue.toLocaleString()}</p>
+            </div>
+          </motion.div>
+        )}
+
+        <div className="flex flex-wrap gap-2 mb-6">
+          {stages.map((s) => {
+            const count = s === "All" ? customers.length : customers.filter((c) => c.deal_stage === s).length;
+            const active = stageFilter === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setStageFilter(s)}
+                className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                  active
+                    ? "bg-primary/15 border-primary/40 text-primary"
+                    : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {s} <span className="opacity-60">({count})</span>
+              </button>
+            );
+          })}
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -188,7 +268,20 @@ const Customers = () => {
                         <Badge className={`${stageColors[customer.deal_stage] || ""} font-medium`}>{customer.deal_stage}</Badge>
                       </td>
                       <td className="p-4">
-                        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200" />
+                        <div className="flex items-center gap-1 justify-end">
+                          <button
+                            type="button"
+                            aria-label={`Delete ${customer.name}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPendingDelete(customer);
+                            }}
+                            className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                          <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200" />
+                        </div>
                       </td>
                     </motion.tr>
                   ))}
@@ -198,6 +291,21 @@ const Customers = () => {
           )}
         </motion.div>
       </div>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {pendingDelete?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes this customer and their record from your pipeline. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 };
