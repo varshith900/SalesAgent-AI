@@ -268,7 +268,20 @@ const Customers = () => {
                         <Badge className={`${stageColors[customer.deal_stage] || ""} font-medium`}>{customer.deal_stage}</Badge>
                       </td>
                       <td className="p-4">
-                        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200" />
+                        <div className="flex items-center gap-1 justify-end">
+                          <button
+                            type="button"
+                            aria-label={`Delete ${customer.name}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPendingDelete(customer);
+                            }}
+                            className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                          <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200" />
+                        </div>
                       </td>
                     </motion.tr>
                   ))}
@@ -278,6 +291,21 @@ const Customers = () => {
           )}
         </motion.div>
       </div>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {pendingDelete?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes this customer and their record from your pipeline. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 };
