@@ -154,6 +154,49 @@ const Customers = () => {
           />
         </motion.div>
 
+        {!loading && customers.length > 0 && (
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.18 }}
+          >
+            <div className="glass rounded-xl p-4 shadow-card">
+              <p className="text-xs text-muted-foreground">Open deals</p>
+              <p className="text-2xl font-display font-bold text-foreground">{openDeals.length}</p>
+            </div>
+            <div className="glass rounded-xl p-4 shadow-card">
+              <p className="text-xs text-muted-foreground">Pipeline value</p>
+              <p className="text-2xl font-display font-bold text-primary">${pipelineValue.toLocaleString()}</p>
+            </div>
+            <div className="glass rounded-xl p-4 shadow-card col-span-2 sm:col-span-1">
+              <p className="text-xs text-muted-foreground">Closed won</p>
+              <p className="text-2xl font-display font-bold text-success">${wonValue.toLocaleString()}</p>
+            </div>
+          </motion.div>
+        )}
+
+        <div className="flex flex-wrap gap-2 mb-6">
+          {stages.map((s) => {
+            const count = s === "All" ? customers.length : customers.filter((c) => c.deal_stage === s).length;
+            const active = stageFilter === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setStageFilter(s)}
+                className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                  active
+                    ? "bg-primary/15 border-primary/40 text-primary"
+                    : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {s} <span className="opacity-60">({count})</span>
+              </button>
+            );
+          })}
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
