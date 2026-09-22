@@ -54,12 +54,36 @@ const Customers = () => {
     fetch();
   }, [user]);
 
-  const filtered = customers.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.company.toLowerCase().includes(search.toLowerCase()) ||
-      (c.industry?.toLowerCase().includes(search.toLowerCase()))
-  );
+  const stages = ["All", "Lead", "Contacted", "Demo", "Negotiation", "Closed"];
+
+  const filtered = customers.filter((c) => {
+    const q = search.toLowerCase();
+    const matchesSearch =
+      c.name.toLowerCase().includes(q) ||
+      c.company.toLowerCase().includes(q) ||
+      !!c.industry?.toLowerCase().includes(q);
+    const matchesStage = stageFilter === "All" || c.deal_stage === stageFilter;
+    return matchesSearch && matchesStage;
+  });
+
+  const openDeals = customers.filter((c) => c.deal_stage !== "Closed");
+  const pipelineValue = openDeals.reduce((sum, c) => sum + (c.deal_size || 0), 0);
+  const wonValue = customers
+    .filter((c) => c.deal_stage === "Closed")
+    .reduce((sum, c) => sum + (c.deal_size || 0), 0);
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    const target = pendingDelete;
+    setPendingDelete(null);
+    const { error } = await supabase.from("customers").delete().eq("id", target.id);
+    if (error) {
+      toast.error("Could not delete customer");
+      return;
+    }
+    setCustomers((prev) => prev.filter((c) => c.id !== target.id));
+    toast.success(`${target.name} deleted`);
+  };
 
   const seedData = async () => {
     if (!user) return;
