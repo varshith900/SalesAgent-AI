@@ -131,6 +131,14 @@ const AddCustomer = () => {
         notes: form.notes.trim() || null,
         products_interested: products,
         last_interaction_date: form.last_interaction_date || null,
+        currency: form.currency,
+        phone_country_code: form.phone_country_code,
+        job_title: form.job_title.trim() || null,
+        website: form.website.trim() || null,
+        city: form.city.trim() || null,
+        country: form.country.trim() || null,
+        lead_source: form.lead_source || null,
+        next_follow_up_date: form.next_follow_up_date || null,
       })
       .select()
       .single();
