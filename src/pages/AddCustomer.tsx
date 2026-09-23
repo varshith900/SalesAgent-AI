@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserPlus, Bot, Loader2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { z } from "zod";
+import { CURRENCIES, COUNTRY_CODES, LEAD_SOURCES, DEFAULT_CURRENCY } from "@/lib/intl";
 
 const customerSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
@@ -32,6 +33,14 @@ const customerSchema = z.object({
   notes: z.string().trim().max(2000).optional(),
   products_interested: z.string().trim().max(500).optional(),
   last_interaction_date: z.string().optional(),
+  job_title: z.string().trim().max(100).optional(),
+  website: z.string().trim().max(200).optional(),
+  city: z.string().trim().max(100).optional(),
+  country: z.string().trim().max(100).optional(),
+  lead_source: z.string().trim().max(100).optional(),
+  next_follow_up_date: z.string().optional(),
+  currency: z.string(),
+  phone_country_code: z.string(),
 });
 
 const FormField = ({ label, id, required, error, children }: { label: string; id: string; required?: boolean; error?: string; children: React.ReactNode }) => (
