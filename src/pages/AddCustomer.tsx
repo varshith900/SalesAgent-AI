@@ -226,14 +226,101 @@ const AddCustomer = () => {
                 </FormField>
 
                 <FormField label="Phone" id="phone">
+                  <div className="flex gap-2">
+                    <Select value={form.phone_country_code} onValueChange={(v) => update("phone_country_code", v)}>
+                      <SelectTrigger className="bg-secondary/50 border-border focus-glow w-[110px] shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-64">
+                        {COUNTRY_CODES.map((c) => (
+                          <SelectItem key={c.code} value={c.dial}>
+                            {c.dial} {c.code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      id="phone"
+                      inputMode="tel"
+                      value={form.phone}
+                      onChange={(e) => update("phone", e.target.value)}
+                      placeholder="98765 43210"
+                      className="bg-secondary/50 border-border focus-glow"
+                    />
+                  </div>
+                </FormField>
+
+                <FormField label="Job Title" id="job_title">
                   <Input
-                    id="phone"
-                    value={form.phone}
-                    onChange={(e) => update("phone", e.target.value)}
-                    placeholder="e.g. +1-555-0101"
+                    id="job_title"
+                    value={form.job_title}
+                    onChange={(e) => update("job_title", e.target.value)}
+                    placeholder="e.g. VP of Operations"
                     className="bg-secondary/50 border-border focus-glow"
                   />
                 </FormField>
+
+                <FormField label="Website" id="website">
+                  <Input
+                    id="website"
+                    value={form.website}
+                    onChange={(e) => update("website", e.target.value)}
+                    placeholder="e.g. techvista.com"
+                    className="bg-secondary/50 border-border focus-glow"
+                  />
+                </FormField>
+
+                <FormField label="City" id="city">
+                  <Input
+                    id="city"
+                    value={form.city}
+                    onChange={(e) => update("city", e.target.value)}
+                    placeholder="e.g. Bengaluru"
+                    className="bg-secondary/50 border-border focus-glow"
+                  />
+                </FormField>
+
+                <FormField label="Country" id="country">
+                  <Select value={form.country} onValueChange={(v) => update("country", v)}>
+                    <SelectTrigger className="bg-secondary/50 border-border focus-glow">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-64">
+                      {COUNTRY_CODES.map((c) => (
+                        <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
+                <FormField label="Lead Source" id="lead_source">
+                  <Select value={form.lead_source} onValueChange={(v) => update("lead_source", v)}>
+                    <SelectTrigger className="bg-secondary/50 border-border focus-glow">
+                      <SelectValue placeholder="How did you find them?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LEAD_SOURCES.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
+                <FormField label="Currency" id="currency">
+                  <Select value={form.currency} onValueChange={(v) => update("currency", v)}>
+                    <SelectTrigger className="bg-secondary/50 border-border focus-glow">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-64">
+                      {CURRENCIES.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.symbol} {c.code} — {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
 
                 <FormField label="Industry" id="industry">
                   <Input
