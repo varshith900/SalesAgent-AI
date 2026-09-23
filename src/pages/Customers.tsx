@@ -178,11 +178,11 @@ const Customers = () => {
             </div>
             <div className="glass rounded-xl p-4 shadow-card">
               <p className="text-xs text-muted-foreground">Pipeline value</p>
-              <p className="text-2xl font-display font-bold text-primary">${pipelineValue.toLocaleString()}</p>
+              <p className="text-xl sm:text-2xl font-display font-bold text-primary break-words">{pipelineValue}</p>
             </div>
             <div className="glass rounded-xl p-4 shadow-card col-span-2 sm:col-span-1">
               <p className="text-xs text-muted-foreground">Closed won</p>
-              <p className="text-2xl font-display font-bold text-success">${wonValue.toLocaleString()}</p>
+              <p className="text-xl sm:text-2xl font-display font-bold text-success break-words">{wonValue}</p>
             </div>
           </motion.div>
         )}
@@ -273,7 +273,7 @@ const Customers = () => {
                       <td className="p-4 text-foreground hidden md:table-cell">{customer.company}</td>
                       <td className="p-4 text-muted-foreground hidden lg:table-cell">{customer.industry || "—"}</td>
                       <td className="p-4 text-foreground hidden lg:table-cell font-medium">
-                        {customer.deal_size ? `$${customer.deal_size.toLocaleString()}` : "—"}
+                        {customer.deal_size ? formatMoney(customer.deal_size, customer.currency || DEFAULT_CURRENCY) : "—"}
                       </td>
                       <td className="p-4">
                         <Badge className={`${stageColors[customer.deal_stage] || ""} font-medium`}>{customer.deal_stage}</Badge>
