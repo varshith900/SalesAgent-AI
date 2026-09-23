@@ -20,6 +20,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
+import { formatMoney, DEFAULT_CURRENCY } from "@/lib/intl";
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 
@@ -67,10 +68,20 @@ const Customers = () => {
   });
 
   const openDeals = customers.filter((c) => c.deal_stage !== "Closed");
-  const pipelineValue = openDeals.reduce((sum, c) => sum + (c.deal_size || 0), 0);
-  const wonValue = customers
-    .filter((c) => c.deal_stage === "Closed")
-    .reduce((sum, c) => sum + (c.deal_size || 0), 0);
+
+  const sumByCurrency = (list: Customer[]) => {
+    const totals = list.reduce<Record<string, number>>((acc, c) => {
+      const cur = c.currency || DEFAULT_CURRENCY;
+      acc[cur] = (acc[cur] || 0) + (c.deal_size || 0);
+      return acc;
+    }, {});
+    const entries = Object.entries(totals);
+    if (entries.length === 0) return formatMoney(0);
+    return entries.map(([cur, amt]) => formatMoney(amt, cur)).join(" · ");
+  };
+
+  const pipelineValue = sumByCurrency(openDeals);
+  const wonValue = sumByCurrency(customers.filter((c) => c.deal_stage === "Closed"));
 
   const confirmDelete = async () => {
     if (!pendingDelete) return;
