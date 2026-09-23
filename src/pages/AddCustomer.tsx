@@ -345,7 +345,7 @@ const AddCustomer = () => {
                   </Select>
                 </FormField>
 
-                <FormField label="Deal Size ($)" id="deal_size">
+                <FormField label={`Deal Size (${currencySymbol})`} id="deal_size">
                   <Input
                     id="deal_size"
                     type="number"
@@ -357,7 +357,7 @@ const AddCustomer = () => {
                   />
                 </FormField>
 
-                <FormField label="Budget ($)" id="budget">
+                <FormField label={`Budget (${currencySymbol})`} id="budget">
                   <Input
                     id="budget"
                     type="number"
@@ -375,6 +375,16 @@ const AddCustomer = () => {
                     type="date"
                     value={form.last_interaction_date}
                     onChange={(e) => update("last_interaction_date", e.target.value)}
+                    className="bg-secondary/50 border-border focus-glow"
+                  />
+                </FormField>
+
+                <FormField label="Next Follow-up Date" id="next_follow_up_date">
+                  <Input
+                    id="next_follow_up_date"
+                    type="date"
+                    value={form.next_follow_up_date}
+                    onChange={(e) => update("next_follow_up_date", e.target.value)}
                     className="bg-secondary/50 border-border focus-glow"
                   />
                 </FormField>
