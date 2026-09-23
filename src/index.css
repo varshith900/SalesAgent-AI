@@ -64,7 +64,62 @@
     --shadow-card: 0 4px 24px hsl(222 47% 3% / 0.5);
     --shadow-elevated: 0 8px 32px hsl(222 47% 3% / 0.6), 0 2px 8px hsl(222 47% 3% / 0.3);
     --glass-bg: hsl(222 41% 9% / 0.7);
+    --glass-subtle-bg: hsl(222 41% 9% / 0.5);
     --glass-border: hsl(210 40% 96% / 0.08);
+  }
+
+  .light {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 217 91% 52%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 199 89% 48%;
+
+    --secondary: 214 32% 94%;
+    --secondary-foreground: 222 47% 15%;
+
+    --muted: 214 32% 94%;
+    --muted-foreground: 215 16% 42%;
+
+    --accent: 217 91% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 25% 88%;
+    --input: 214 25% 88%;
+    --ring: 217 91% 52%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 30% 25%;
+    --sidebar-primary: 217 91% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 214 32% 94%;
+    --sidebar-accent-foreground: 222 47% 15%;
+    --sidebar-border: 214 25% 88%;
+    --sidebar-ring: 217 91% 52%;
+
+    --success: 142 66% 36%;
+    --warning: 32 90% 44%;
+    --info: 199 89% 42%;
+
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 97%));
+    --gradient-subtle: linear-gradient(180deg, hsl(210 40% 99%), hsl(210 40% 96%));
+    --shadow-glow: 0 0 20px hsl(217 91% 52% / 0.12);
+    --shadow-glow-lg: 0 0 40px hsl(217 91% 52% / 0.16);
+    --shadow-card: 0 4px 20px hsl(222 47% 30% / 0.08);
+    --shadow-elevated: 0 8px 28px hsl(222 47% 30% / 0.12), 0 2px 8px hsl(222 47% 30% / 0.06);
+    --glass-bg: hsl(0 0% 100% / 0.75);
+    --glass-subtle-bg: hsl(0 0% 100% / 0.6);
+    --glass-border: hsl(222 47% 20% / 0.08);
   }
 }
 
@@ -141,7 +196,7 @@
     border: 1px solid var(--glass-border);
   }
   .glass-subtle {
-    background: hsl(222 41% 9% / 0.5);
+    background: var(--glass-subtle-bg);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid var(--glass-border);
