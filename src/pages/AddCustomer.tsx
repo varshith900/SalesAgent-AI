@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserPlus, Bot, Loader2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { z } from "zod";
+import { CURRENCIES, COUNTRY_CODES, LEAD_SOURCES, DEFAULT_CURRENCY } from "@/lib/intl";
 
 const customerSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
@@ -32,6 +33,14 @@ const customerSchema = z.object({
   notes: z.string().trim().max(2000).optional(),
   products_interested: z.string().trim().max(500).optional(),
   last_interaction_date: z.string().optional(),
+  job_title: z.string().trim().max(100).optional(),
+  website: z.string().trim().max(200).optional(),
+  city: z.string().trim().max(100).optional(),
+  country: z.string().trim().max(100).optional(),
+  lead_source: z.string().trim().max(100).optional(),
+  next_follow_up_date: z.string().optional(),
+  currency: z.string(),
+  phone_country_code: z.string(),
 });
 
 const FormField = ({ label, id, required, error, children }: { label: string; id: string; required?: boolean; error?: string; children: React.ReactNode }) => (
@@ -65,7 +74,18 @@ const AddCustomer = () => {
     notes: "",
     products_interested: "",
     last_interaction_date: "",
+    job_title: "",
+    website: "",
+    city: "",
+    country: "",
+    lead_source: "",
+    next_follow_up_date: "",
+    currency: DEFAULT_CURRENCY,
+    phone_country_code: "+91",
   });
+
+  const currencySymbol =
+    CURRENCIES.find((c) => c.code === form.currency)?.symbol || form.currency;
 
   const update = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -103,7 +123,7 @@ const AddCustomer = () => {
         name: form.name.trim(),
         company: form.company.trim(),
         email: form.email.trim() || null,
-        phone: form.phone.trim() || null,
+        phone: form.phone.trim() ? `${form.phone_country_code} ${form.phone.trim()}` : null,
         industry: form.industry.trim() || null,
         budget: form.budget ? Number(form.budget) : 0,
         deal_size: form.deal_size ? Number(form.deal_size) : 0,
@@ -111,6 +131,14 @@ const AddCustomer = () => {
         notes: form.notes.trim() || null,
         products_interested: products,
         last_interaction_date: form.last_interaction_date || null,
+        currency: form.currency,
+        phone_country_code: form.phone_country_code,
+        job_title: form.job_title.trim() || null,
+        website: form.website.trim() || null,
+        city: form.city.trim() || null,
+        country: form.country.trim() || null,
+        lead_source: form.lead_source || null,
+        next_follow_up_date: form.next_follow_up_date || null,
       })
       .select()
       .single();
@@ -198,14 +226,101 @@ const AddCustomer = () => {
                 </FormField>
 
                 <FormField label="Phone" id="phone">
+                  <div className="flex gap-2">
+                    <Select value={form.phone_country_code} onValueChange={(v) => update("phone_country_code", v)}>
+                      <SelectTrigger className="bg-secondary/50 border-border focus-glow w-[110px] shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-64">
+                        {COUNTRY_CODES.map((c) => (
+                          <SelectItem key={c.code} value={c.dial}>
+                            {c.dial} {c.code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      id="phone"
+                      inputMode="tel"
+                      value={form.phone}
+                      onChange={(e) => update("phone", e.target.value)}
+                      placeholder="98765 43210"
+                      className="bg-secondary/50 border-border focus-glow"
+                    />
+                  </div>
+                </FormField>
+
+                <FormField label="Job Title" id="job_title">
                   <Input
-                    id="phone"
-                    value={form.phone}
-                    onChange={(e) => update("phone", e.target.value)}
-                    placeholder="e.g. +1-555-0101"
+                    id="job_title"
+                    value={form.job_title}
+                    onChange={(e) => update("job_title", e.target.value)}
+                    placeholder="e.g. VP of Operations"
                     className="bg-secondary/50 border-border focus-glow"
                   />
                 </FormField>
+
+                <FormField label="Website" id="website">
+                  <Input
+                    id="website"
+                    value={form.website}
+                    onChange={(e) => update("website", e.target.value)}
+                    placeholder="e.g. techvista.com"
+                    className="bg-secondary/50 border-border focus-glow"
+                  />
+                </FormField>
+
+                <FormField label="City" id="city">
+                  <Input
+                    id="city"
+                    value={form.city}
+                    onChange={(e) => update("city", e.target.value)}
+                    placeholder="e.g. Bengaluru"
+                    className="bg-secondary/50 border-border focus-glow"
+                  />
+                </FormField>
+
+                <FormField label="Country" id="country">
+                  <Select value={form.country} onValueChange={(v) => update("country", v)}>
+                    <SelectTrigger className="bg-secondary/50 border-border focus-glow">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-64">
+                      {COUNTRY_CODES.map((c) => (
+                        <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
+                <FormField label="Lead Source" id="lead_source">
+                  <Select value={form.lead_source} onValueChange={(v) => update("lead_source", v)}>
+                    <SelectTrigger className="bg-secondary/50 border-border focus-glow">
+                      <SelectValue placeholder="How did you find them?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LEAD_SOURCES.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
+                <FormField label="Currency" id="currency">
+                  <Select value={form.currency} onValueChange={(v) => update("currency", v)}>
+                    <SelectTrigger className="bg-secondary/50 border-border focus-glow">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-64">
+                      {CURRENCIES.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.symbol} {c.code} — {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
 
                 <FormField label="Industry" id="industry">
                   <Input
@@ -230,7 +345,7 @@ const AddCustomer = () => {
                   </Select>
                 </FormField>
 
-                <FormField label="Deal Size ($)" id="deal_size">
+                <FormField label={`Deal Size (${currencySymbol})`} id="deal_size">
                   <Input
                     id="deal_size"
                     type="number"
@@ -242,7 +357,7 @@ const AddCustomer = () => {
                   />
                 </FormField>
 
-                <FormField label="Budget ($)" id="budget">
+                <FormField label={`Budget (${currencySymbol})`} id="budget">
                   <Input
                     id="budget"
                     type="number"
@@ -260,6 +375,16 @@ const AddCustomer = () => {
                     type="date"
                     value={form.last_interaction_date}
                     onChange={(e) => update("last_interaction_date", e.target.value)}
+                    className="bg-secondary/50 border-border focus-glow"
+                  />
+                </FormField>
+
+                <FormField label="Next Follow-up Date" id="next_follow_up_date">
+                  <Input
+                    id="next_follow_up_date"
+                    type="date"
+                    value={form.next_follow_up_date}
+                    onChange={(e) => update("next_follow_up_date", e.target.value)}
                     className="bg-secondary/50 border-border focus-glow"
                   />
                 </FormField>

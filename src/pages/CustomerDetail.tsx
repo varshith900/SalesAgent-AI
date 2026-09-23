@@ -29,7 +29,12 @@ import {
   Send,
   CheckCircle2,
   XCircle,
+  Briefcase,
+  Globe,
+  MapPin,
+  Users,
 } from "lucide-react";
+import { formatMoney, DEFAULT_CURRENCY } from "@/lib/intl";
 import type { Database } from "@/integrations/supabase/types";
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
@@ -425,13 +430,19 @@ const CustomerDetail = () => {
     { key: "proposal", title: "Sales Proposal", icon: Package, gradient: "from-accent/10 to-transparent" },
   ];
 
+  const cur = customer.currency || DEFAULT_CURRENCY;
   const infoCards = [
     { icon: Mail, label: "Email", value: customer.email },
     { icon: Phone, label: "Phone", value: customer.phone },
     { icon: Building, label: "Industry", value: customer.industry },
-    { icon: DollarSign, label: "Deal Size", value: customer.deal_size ? `$${customer.deal_size.toLocaleString()}` : null },
-    { icon: DollarSign, label: "Budget", value: customer.budget ? `$${customer.budget.toLocaleString()}` : null },
+    { icon: Briefcase, label: "Job Title", value: customer.job_title },
+    { icon: Globe, label: "Website", value: customer.website },
+    { icon: MapPin, label: "Location", value: [customer.city, customer.country].filter(Boolean).join(", ") || null },
+    { icon: Users, label: "Lead Source", value: customer.lead_source },
+    { icon: DollarSign, label: "Deal Size", value: customer.deal_size ? formatMoney(customer.deal_size, cur) : null },
+    { icon: DollarSign, label: "Budget", value: customer.budget ? formatMoney(customer.budget, cur) : null },
     { icon: Calendar, label: "Last Contact", value: customer.last_interaction_date ? new Date(customer.last_interaction_date).toLocaleDateString() : null },
+    { icon: Calendar, label: "Next Follow-up", value: customer.next_follow_up_date ? new Date(customer.next_follow_up_date).toLocaleDateString() : null },
   ];
 
   return (
