@@ -74,7 +74,18 @@ const AddCustomer = () => {
     notes: "",
     products_interested: "",
     last_interaction_date: "",
+    job_title: "",
+    website: "",
+    city: "",
+    country: "",
+    lead_source: "",
+    next_follow_up_date: "",
+    currency: DEFAULT_CURRENCY,
+    phone_country_code: "+91",
   });
+
+  const currencySymbol =
+    CURRENCIES.find((c) => c.code === form.currency)?.symbol || form.currency;
 
   const update = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
