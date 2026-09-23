@@ -123,7 +123,7 @@ const AddCustomer = () => {
         name: form.name.trim(),
         company: form.company.trim(),
         email: form.email.trim() || null,
-        phone: form.phone.trim() || null,
+        phone: form.phone.trim() ? `${form.phone_country_code} ${form.phone.trim()}` : null,
         industry: form.industry.trim() || null,
         budget: form.budget ? Number(form.budget) : 0,
         deal_size: form.deal_size ? Number(form.deal_size) : 0,
