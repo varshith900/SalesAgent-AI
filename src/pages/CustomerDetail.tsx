@@ -29,7 +29,12 @@ import {
   Send,
   CheckCircle2,
   XCircle,
+  Briefcase,
+  Globe,
+  MapPin,
+  Users,
 } from "lucide-react";
+import { formatMoney, DEFAULT_CURRENCY } from "@/lib/intl";
 import type { Database } from "@/integrations/supabase/types";
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
