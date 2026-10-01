@@ -9,6 +9,7 @@ import {
   Bot, Mail, Lock, ArrowRight, ShieldCheck, Zap, Target, FileText, TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="h-[1.15rem] w-[1.15rem]" aria-hidden="true">
@@ -81,6 +82,7 @@ const Auth = () => {
 
   return (
     <main className="relative flex min-h-screen overflow-hidden bg-background">
+      <div className="absolute right-4 top-4 z-30 sm:right-6 sm:top-6"><ThemeToggle /></div>
       {/* ── Animated backdrop ─────────────────────────── */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <motion.div
@@ -101,7 +103,7 @@ const Auth = () => {
         <div className="absolute inset-0 opacity-[0.05] [background-image:linear-gradient(hsl(var(--foreground))_1px,transparent_1px),linear-gradient(90deg,hsl(var(--foreground))_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
       </div>
 
-      <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-14 px-6 py-12 lg:grid-cols-[1.05fr_1fr] lg:gap-10 xl:gap-20">
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-8 sm:px-6 sm:py-12 lg:min-h-screen lg:grid-cols-[1.05fr_1fr] lg:gap-10 xl:gap-20">
         {/* ── Brand / showcase panel ──────────────────── */}
         <motion.section
           className="hidden lg:block"
