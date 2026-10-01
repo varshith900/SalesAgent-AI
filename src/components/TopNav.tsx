@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SupportDialog } from "@/components/SupportDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,13 +24,13 @@ export function TopNav() {
   const { signOut } = useAuth();
 
   return (
-    <nav className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full">
-      <div className="container flex h-16 items-center px-4 max-w-7xl mx-auto">
+    <nav className="sticky top-0 z-50 w-full border-b border-border/60 glass-subtle">
+      <div className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
         <div 
-          className="flex items-center gap-2 mr-8 cursor-pointer hover:opacity-80 transition-opacity"
+          className="group mr-8 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-90"
           onClick={() => navigate("/")}
         >
-          <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-glow shrink-0">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl gradient-primary shadow-glow transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:rotate-3">
             <Bot className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="font-display font-bold text-gradient text-lg tracking-tight hidden sm:inline-block">
@@ -49,7 +50,7 @@ export function TopNav() {
                 key={item.title}
                 to={item.url}
                 end={item.url === "/"}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-primary/[0.06] flex items-center gap-2 ${
+                className={`relative flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-all duration-200 hover:bg-primary/[0.06] ${
                   isActive
                     ? "text-primary bg-primary/[0.08]"
                     : "text-muted-foreground hover:text-foreground"
@@ -78,11 +79,15 @@ export function TopNav() {
                   {item.title}
                 </DropdownMenuItem>
               ))}
+              <DropdownMenuItem asChild>
+                <SupportDialog mobile />
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden md:block"><SupportDialog /></div>
           <ThemeToggle />
           <Button
             variant="ghost"
