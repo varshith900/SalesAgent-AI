@@ -5,4 +5,4 @@
 - [x] Add motion, hover polish, and responsive refinements
 - [x] Upgrade authentication visuals and theme switching
 - [x] Add follow-up focus utility without changing workflows
-- [ ] Verify desktop and mobile behavior
+- [x] Verify desktop and mobile behavior

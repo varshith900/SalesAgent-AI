@@ -79,9 +79,9 @@ export function TopNav() {
                   {item.title}
                 </DropdownMenuItem>
               ))}
-              <DropdownMenuItem asChild>
+              <div className="px-1 py-1">
                 <SupportDialog mobile />
-              </DropdownMenuItem>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
