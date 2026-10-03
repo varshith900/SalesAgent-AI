@@ -10,6 +10,7 @@ import Customers from "./pages/Customers";
 import CustomerDetail from "./pages/CustomerDetail";
 import AddCustomer from "./pages/AddCustomer";
 import Activity from "./pages/Activity";
+import SalesAssistant from "./pages/SalesAssistant";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/customers/new" element={<ProtectedRoute><AddCustomer /></ProtectedRoute>} />
             <Route path="/customers/:id" element={<ProtectedRoute><CustomerDetail /></ProtectedRoute>} />
             <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
+            <Route path="/assistant" element={<ProtectedRoute><SalesAssistant /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

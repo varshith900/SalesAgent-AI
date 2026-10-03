@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.contact-support]
 verify_jwt = false
+
+[functions.sales-chat]
+verify_jwt = false

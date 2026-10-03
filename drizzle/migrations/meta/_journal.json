@@ -15,6 +15,13 @@
       "when": 1790046300165,
       "tag": "0001_add_customer_detail_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791015398605,
+      "tag": "0002_create_sales_chat_messages",
+      "breakpoints": true
     }
   ]
 }

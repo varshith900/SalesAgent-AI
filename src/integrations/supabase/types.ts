@@ -133,6 +133,33 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_chat_messages: {
+        Row: {
+          ai_message_id: string
+          created_at: string
+          id: string
+          message: Json
+          role: string
+          user_id: string
+        }
+        Insert: {
+          ai_message_id: string
+          created_at?: string
+          id?: string
+          message: Json
+          role: string
+          user_id: string
+        }
+        Update: {
+          ai_message_id?: string
+          created_at?: string
+          id?: string
+          message?: Json
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -6,3 +6,4 @@
 - [x] Upgrade authentication visuals and theme switching
 - [x] Add follow-up focus utility without changing workflows
 - [x] Verify desktop and mobile behavior
+- [x] Add a secure CRM-aware sales assistant with cloud-saved conversation history

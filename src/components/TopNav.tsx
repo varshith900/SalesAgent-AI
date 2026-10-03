@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Activity, LogOut, Bot, Menu } from "lucide-react";
+import { LayoutDashboard, Users, Activity, LogOut, Bot, Menu, MessageSquareText } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +16,7 @@ const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Customers", url: "/customers", icon: Users },
   { title: "Activity Log", url: "/activity", icon: Activity },
+  { title: "Assistant", url: "/assistant", icon: MessageSquareText },
 ];
 
 export function TopNav() {
