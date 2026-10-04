@@ -83,14 +83,14 @@ ${customerContext}`;
       { baseURL: "https://ai.gateway.lovable.dev/v1", apiKey, model: "openai/gpt-6-astra" },
       systemMessage,
       modelMessages,
-      incoming,
-      async (completed) => {
-        const hasAssistantReply = completed.some(
-          (message) => message.role === "assistant" && message.parts.some((part) => part.type === "text" && part.text.trim()),
-        );
-        if (!hasAssistantReply) return;
-        const rows = completed
-          .filter((message) => message.role === "user" || message.role === "assistant")
+      async (text) => {
+        if (!text.trim()) return;
+        const assistantMessage: UIMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          parts: [{ type: "text", text }],
+        };
+        const rows = [...incoming, assistantMessage]
           .map((message) => ({
             user_id: user.id,
             ai_message_id: message.id,

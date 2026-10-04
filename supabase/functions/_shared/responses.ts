@@ -1,5 +1,5 @@
 import { createOpenAI } from "npm:@ai-sdk/openai";
-import { streamText, type ModelMessage, type UIMessage } from "npm:ai";
+import { streamText, type ModelMessage } from "npm:ai";
 
 import {
   createLovableAiGatewayRunIdFetch,
@@ -12,8 +12,7 @@ export function createResponsesCall(
   config: { baseURL: string; apiKey: string; model: string },
   instructions: string,
   messages: ModelMessage[],
-  originalMessages: UIMessage[],
-  onFinish: (messages: UIMessage[]) => Promise<void>,
+  onFinish?: (text: string) => Promise<void>,
 ) {
   const runIdFetch = createLovableAiGatewayRunIdFetch(getLovableAiGatewayRunId(request));
   const provider = createOpenAI({
@@ -38,14 +37,12 @@ export function createResponsesCall(
     },
   });
 
+  if (onFinish) {
+    void result.text.then(onFinish).catch((error) => console.error("sales-chat completion failed", error));
+  }
+
   return withLovableAiGatewayRunIdHeader(
-    result.toUIMessageStreamResponse({
-      originalMessages,
-      sendReasoning: false,
-      onFinish: async ({ messages: completed, isAborted }) => {
-        if (!isAborted) await onFinish(completed);
-      },
-    }),
+    result.toUIMessageStreamResponse({ sendReasoning: false }),
     runIdFetch,
   );
 }
