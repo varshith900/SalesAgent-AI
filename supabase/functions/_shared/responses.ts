@@ -10,6 +10,7 @@ import {
 export function createResponsesCall(
   request: Request,
   config: { baseURL: string; apiKey: string; model: string },
+  instructions: string,
   messages: ModelMessage[],
   originalMessages: UIMessage[],
   onFinish: (messages: UIMessage[]) => Promise<void>,
@@ -24,6 +25,7 @@ export function createResponsesCall(
 
   const result = streamText({
     model: provider.responses(config.model),
+    instructions,
     messages,
     abortSignal: request.signal,
     providerOptions: {

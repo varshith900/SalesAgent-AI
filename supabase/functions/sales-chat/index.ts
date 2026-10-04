@@ -78,12 +78,11 @@ CURRENT CRM RECORDS (${customers?.length ?? 0}):
 ${customerContext}`;
 
     const modelMessages = await convertToModelMessages(incoming);
-    const messages = [{ role: "system" as const, content: systemMessage }, ...modelMessages];
-
     return await createResponsesCall(
       request,
       { baseURL: "https://ai.gateway.lovable.dev/v1", apiKey, model: "openai/gpt-6-astra" },
-      messages,
+      systemMessage,
+      modelMessages,
       incoming,
       async (completed) => {
         const rows = completed
