@@ -27,7 +27,6 @@ export function createResponsesCall(
     model: provider.responses(config.model),
     instructions,
     messages,
-    abortSignal: request.signal,
     providerOptions: {
       openai: {
         forceReasoning: true,

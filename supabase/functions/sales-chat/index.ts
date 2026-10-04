@@ -85,6 +85,10 @@ ${customerContext}`;
       modelMessages,
       incoming,
       async (completed) => {
+        const hasAssistantReply = completed.some(
+          (message) => message.role === "assistant" && message.parts.some((part) => part.type === "text" && part.text.trim()),
+        );
+        if (!hasAssistantReply) return;
         const rows = completed
           .filter((message) => message.role === "user" || message.role === "assistant")
           .map((message) => ({
