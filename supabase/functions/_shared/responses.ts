@@ -2,7 +2,6 @@ import { createOpenAI } from "npm:@ai-sdk/openai";
 import { streamText, type ModelMessage, type UIMessage } from "npm:ai";
 
 export function createResponsesCall(
-  request: Request,
   config: { baseURL: string; apiKey: string; model: string },
   instructions: string,
   messages: ModelMessage[],

@@ -79,7 +79,6 @@ ${customerContext}`;
 
     const modelMessages = await convertToModelMessages(incoming);
     return await createResponsesCall(
-      request,
       { baseURL: "https://ai.gateway.lovable.dev/v1", apiKey, model: "openai/gpt-6-astra" },
       systemMessage,
       modelMessages,
