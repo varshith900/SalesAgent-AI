@@ -1,25 +1,17 @@
 import { createOpenAI } from "npm:@ai-sdk/openai";
-import { streamText, type ModelMessage } from "npm:ai";
-
-import {
-  createLovableAiGatewayRunIdFetch,
-  getLovableAiGatewayRunId,
-  withLovableAiGatewayRunIdHeader,
-} from "./run-id.ts";
+import { streamText, type ModelMessage, type UIMessage } from "npm:ai";
 
 export function createResponsesCall(
-  request: Request,
   config: { baseURL: string; apiKey: string; model: string },
   instructions: string,
   messages: ModelMessage[],
-  onFinish?: (text: string) => Promise<void>,
+  originalMessages: UIMessage[],
+  onFinish: (messages: UIMessage[]) => Promise<void>,
 ) {
-  const runIdFetch = createLovableAiGatewayRunIdFetch(getLovableAiGatewayRunId(request));
   const provider = createOpenAI({
     baseURL: `${config.baseURL.replace(/\/+$/, "").replace(/\/v1$/, "")}/v1`,
     apiKey: config.apiKey,
     headers: { "Lovable-API-Key": config.apiKey, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
-    fetch: runIdFetch.fetch,
   });
 
   const result = streamText({
@@ -37,12 +29,15 @@ export function createResponsesCall(
     },
   });
 
-  if (onFinish) {
-    void result.text.then(onFinish).catch((error) => console.error("sales-chat completion failed", error));
-  }
-
-  return withLovableAiGatewayRunIdHeader(
-    result.toUIMessageStreamResponse({ sendReasoning: false }),
-    runIdFetch,
-  );
+  const response = result.toUIMessageStreamResponse({
+    originalMessages,
+    sendReasoning: false,
+    onFinish: ({ messages: completed, isAborted }) => {
+      if (!isAborted) EdgeRuntime.waitUntil(onFinish(completed));
+    },
+  });
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Allow-Headers", "authorization, x-client-info, apikey, content-type");
+  return new Response(response.body, { status: response.status, headers });
 }

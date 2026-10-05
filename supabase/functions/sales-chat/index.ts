@@ -79,18 +79,13 @@ ${customerContext}`;
 
     const modelMessages = await convertToModelMessages(incoming);
     return await createResponsesCall(
-      request,
       { baseURL: "https://ai.gateway.lovable.dev/v1", apiKey, model: "openai/gpt-6-astra" },
       systemMessage,
       modelMessages,
-      async (text) => {
-        if (!text.trim()) return;
-        const assistantMessage: UIMessage = {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          parts: [{ type: "text", text }],
-        };
-        const rows = [...incoming, assistantMessage]
+      incoming,
+      async (completed) => {
+        const rows = completed
+          .filter((message) => message.role === "user" || message.role === "assistant")
           .map((message) => ({
             user_id: user.id,
             ai_message_id: message.id,
