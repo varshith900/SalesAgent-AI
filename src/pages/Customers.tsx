@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ContactDialog } from "@/components/ContactDialog";
-import { Search, Plus, ArrowRight, Trash2 } from "lucide-react";
+import { CustomerEditDialog } from "@/components/CustomerEditDialog";
+import { toCsv, parseCsv, downloadFile } from "@/lib/csv";
+import { Search, Plus, ArrowRight, Trash2, Pencil, Upload, Download, List, LayoutGrid } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -41,6 +42,9 @@ const Customers = () => {
   const [loading, setLoading] = useState(true);
   const [stageFilter, setStageFilter] = useState<string>("All");
   const [pendingDelete, setPendingDelete] = useState<Customer | null>(null);
+  const [editing, setEditing] = useState<Customer | null>(null);
+  const [view, setView] = useState<"list" | "board">("list");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
