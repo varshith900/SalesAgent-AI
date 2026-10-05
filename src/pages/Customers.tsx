@@ -302,7 +302,67 @@ const Customers = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.25 }}
         >
-          {loading ? (
+          {!loading && view === "board" ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {stages.filter((s) => s !== "All").map((stage) => {
+                const items = filtered.filter((c) => c.deal_stage === stage);
+                return (
+                  <div
+                    key={stage}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      const c = customers.find((x) => x.id === e.dataTransfer.getData("id"));
+                      if (c) moveStage(c, stage);
+                    }}
+                    className="glass rounded-xl p-3 min-h-[200px] shadow-card"
+                  >
+                    <div className="flex items-center justify-between mb-3 px-1">
+                      <Badge className={stageColors[stage]}>{stage}</Badge>
+                      <span className="text-xs text-muted-foreground">{items.length}</span>
+                    </div>
+                    <div className="space-y-2">
+                      {items.map((c) => (
+                        <div
+                          key={c.id}
+                          draggable
+                          onDragStart={(e) => e.dataTransfer.setData("id", c.id)}
+                          onClick={() => navigate(`/customers/${c.id}`)}
+                          className="group rounded-lg border border-border bg-card p-3 cursor-pointer hover:border-primary/40 hover:-translate-y-0.5 transition-all"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm text-foreground truncate">{c.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{c.company}</p>
+                            </div>
+                            <button
+                              type="button"
+                              aria-label={`Edit ${c.name}`}
+                              onClick={(e) => { e.stopPropagation(); setEditing(c); }}
+                              className="p-1 rounded text-muted-foreground hover:text-primary"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                          <p className="text-xs font-medium text-primary mt-2">
+                            {formatMoney(c.deal_size || 0, c.currency || DEFAULT_CURRENCY)}
+                          </p>
+                          <select
+                            value={c.deal_stage}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => moveStage(c, e.target.value)}
+                            aria-label="Move stage"
+                            className="mt-2 w-full h-7 rounded border border-input bg-background text-xs px-1"
+                          >
+                            {stages.filter((s) => s !== "All").map((s) => <option key={s}>{s}</option>)}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : loading ? (
             <div className="glass rounded-xl overflow-hidden shadow-card">
               <table className="w-full">
                 <thead>
@@ -406,6 +466,15 @@ const Customers = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CustomerEditDialog
+        customer={editing}
+        onClose={() => setEditing(null)}
+        onSaved={(c) => {
+          setCustomers((prev) => prev.map((x) => (x.id === c.id ? c : x)));
+          setEditing(null);
+        }}
+      />
     </AppLayout>
   );
 };
