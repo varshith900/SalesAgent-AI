@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ContactDialog } from "@/components/ContactDialog";
-import { Search, Plus, ArrowRight, Trash2 } from "lucide-react";
+import { CustomerEditDialog } from "@/components/CustomerEditDialog";
+import { toCsv, parseCsv, downloadFile } from "@/lib/csv";
+import { Search, Plus, ArrowRight, Trash2, Pencil, Upload, Download, List, LayoutGrid } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -41,6 +42,9 @@ const Customers = () => {
   const [loading, setLoading] = useState(true);
   const [stageFilter, setStageFilter] = useState<string>("All");
   const [pendingDelete, setPendingDelete] = useState<Customer | null>(null);
+  const [editing, setEditing] = useState<Customer | null>(null);
+  const [view, setView] = useState<"list" | "board">("list");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -97,6 +101,59 @@ const Customers = () => {
     toast.success(`${target.name} deleted`);
   };
 
+  const moveStage = async (c: Customer, stage: string) => {
+    if (c.deal_stage === stage) return;
+    setCustomers((prev) => prev.map((x) => (x.id === c.id ? { ...x, deal_stage: stage } : x)));
+    const { error } = await supabase.from("customers").update({ deal_stage: stage }).eq("id", c.id);
+    if (error) {
+      toast.error("Could not update stage");
+      setCustomers((prev) => prev.map((x) => (x.id === c.id ? c : x)));
+    } else toast.success(`${c.name} moved to ${stage}`);
+  };
+
+  const exportCsv = () => {
+    const cols = ["name", "company", "email", "phone_country_code", "phone", "job_title", "industry", "city", "country", "currency", "deal_size", "budget", "deal_stage", "lead_source", "next_follow_up_date", "notes"];
+    downloadFile(`customers-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(filtered as unknown as Record<string, unknown>[], cols));
+  };
+
+  const importCsv = async (file: File) => {
+    if (!user) return;
+    const rows = parseCsv(await file.text());
+    const valid = rows
+      .filter((r) => r.name && r.company)
+      .slice(0, 1000)
+      .map((r) => ({
+        user_id: user.id,
+        name: r.name.slice(0, 200),
+        company: r.company.slice(0, 200),
+        email: r.email || null,
+        phone: r.phone || null,
+        phone_country_code: r.phone_country_code || "+91",
+        job_title: r.job_title || null,
+        industry: r.industry || null,
+        city: r.city || null,
+        country: r.country || null,
+        currency: r.currency || DEFAULT_CURRENCY,
+        deal_size: Number(r.deal_size) || 0,
+        budget: Number(r.budget) || 0,
+        deal_stage: stages.includes(r.deal_stage) && r.deal_stage !== "All" ? r.deal_stage : "Lead",
+        lead_source: r.lead_source || null,
+        next_follow_up_date: /^\d{4}-\d{2}-\d{2}$/.test(r.next_follow_up_date || "") ? r.next_follow_up_date : null,
+        notes: r.notes || null,
+      }));
+    if (!valid.length) {
+      toast.error("No valid rows found. CSV needs 'name' and 'company' columns.");
+      return;
+    }
+    const { data, error } = await supabase.from("customers").insert(valid).select();
+    if (error) {
+      toast.error("Import failed");
+      return;
+    }
+    setCustomers((prev) => [...(data || []), ...prev]);
+    toast.success(`Imported ${data?.length ?? 0} customers`);
+  };
+
   const seedData = async () => {
     if (!user) return;
     const mockCustomers = [
@@ -137,11 +194,30 @@ const Customers = () => {
               <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground">Customers</h1>
               <p className="text-muted-foreground mt-2 text-lg">Manage your sales pipeline</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 flex-wrap">
               <Button variant="glow" onClick={() => navigate("/customers/new")}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Customer
               </Button>
+              <Button variant="outline" onClick={() => fileRef.current?.click()}>
+                <Upload className="mr-2 h-4 w-4" /> Import CSV
+              </Button>
+              {customers.length > 0 && (
+                <Button variant="outline" onClick={exportCsv}>
+                  <Download className="mr-2 h-4 w-4" /> Export
+                </Button>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) importCsv(f);
+                  e.target.value = "";
+                }}
+              />
               {customers.length === 0 && !loading && (
                 <Button variant="outline" onClick={seedData}>
                   Load Demo Data
@@ -188,7 +264,23 @@ const Customers = () => {
           </motion.div>
         )}
 
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex justify-end mb-3">
+          <div className="inline-flex rounded-lg border border-border bg-secondary/40 p-1">
+            {(["list", "board"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${view === v ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {v === "list" ? <List className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}
+                {v === "list" ? "List" : "Board"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={`flex flex-wrap gap-2 mb-6 ${view === "board" ? "hidden" : ""}`}>
           {stages.map((s) => {
             const count = s === "All" ? customers.length : customers.filter((c) => c.deal_stage === s).length;
             const active = stageFilter === s;
@@ -214,7 +306,67 @@ const Customers = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.25 }}
         >
-          {loading ? (
+          {!loading && view === "board" ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {stages.filter((s) => s !== "All").map((stage) => {
+                const items = filtered.filter((c) => c.deal_stage === stage);
+                return (
+                  <div
+                    key={stage}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      const c = customers.find((x) => x.id === e.dataTransfer.getData("id"));
+                      if (c) moveStage(c, stage);
+                    }}
+                    className="glass rounded-xl p-3 min-h-[200px] shadow-card"
+                  >
+                    <div className="flex items-center justify-between mb-3 px-1">
+                      <Badge className={stageColors[stage]}>{stage}</Badge>
+                      <span className="text-xs text-muted-foreground">{items.length}</span>
+                    </div>
+                    <div className="space-y-2">
+                      {items.map((c) => (
+                        <div
+                          key={c.id}
+                          draggable
+                          onDragStart={(e) => e.dataTransfer.setData("id", c.id)}
+                          onClick={() => navigate(`/customers/${c.id}`)}
+                          className="group rounded-lg border border-border bg-card p-3 cursor-pointer hover:border-primary/40 hover:-translate-y-0.5 transition-all"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm text-foreground truncate">{c.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{c.company}</p>
+                            </div>
+                            <button
+                              type="button"
+                              aria-label={`Edit ${c.name}`}
+                              onClick={(e) => { e.stopPropagation(); setEditing(c); }}
+                              className="p-1 rounded text-muted-foreground hover:text-primary"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                          <p className="text-xs font-medium text-primary mt-2">
+                            {formatMoney(c.deal_size || 0, c.currency || DEFAULT_CURRENCY)}
+                          </p>
+                          <select
+                            value={c.deal_stage}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => moveStage(c, e.target.value)}
+                            aria-label="Move stage"
+                            className="mt-2 w-full h-7 rounded border border-input bg-background text-xs px-1"
+                          >
+                            {stages.filter((s) => s !== "All").map((s) => <option key={s}>{s}</option>)}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : loading ? (
             <div className="glass rounded-xl overflow-hidden shadow-card">
               <table className="w-full">
                 <thead>
@@ -318,6 +470,15 @@ const Customers = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CustomerEditDialog
+        customer={editing}
+        onClose={() => setEditing(null)}
+        onSaved={(c) => {
+          setCustomers((prev) => prev.map((x) => (x.id === c.id ? c : x)));
+          setEditing(null);
+        }}
+      />
     </AppLayout>
   );
 };
