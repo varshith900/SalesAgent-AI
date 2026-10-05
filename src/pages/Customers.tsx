@@ -97,6 +97,59 @@ const Customers = () => {
     toast.success(`${target.name} deleted`);
   };
 
+  const moveStage = async (c: Customer, stage: string) => {
+    if (c.deal_stage === stage) return;
+    setCustomers((prev) => prev.map((x) => (x.id === c.id ? { ...x, deal_stage: stage } : x)));
+    const { error } = await supabase.from("customers").update({ deal_stage: stage }).eq("id", c.id);
+    if (error) {
+      toast.error("Could not update stage");
+      setCustomers((prev) => prev.map((x) => (x.id === c.id ? c : x)));
+    } else toast.success(`${c.name} moved to ${stage}`);
+  };
+
+  const exportCsv = () => {
+    const cols = ["name", "company", "email", "phone_country_code", "phone", "job_title", "industry", "city", "country", "currency", "deal_size", "budget", "deal_stage", "lead_source", "next_follow_up_date", "notes"];
+    downloadFile(`customers-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(filtered as unknown as Record<string, unknown>[], cols));
+  };
+
+  const importCsv = async (file: File) => {
+    if (!user) return;
+    const rows = parseCsv(await file.text());
+    const valid = rows
+      .filter((r) => r.name && r.company)
+      .slice(0, 1000)
+      .map((r) => ({
+        user_id: user.id,
+        name: r.name.slice(0, 200),
+        company: r.company.slice(0, 200),
+        email: r.email || null,
+        phone: r.phone || null,
+        phone_country_code: r.phone_country_code || "+91",
+        job_title: r.job_title || null,
+        industry: r.industry || null,
+        city: r.city || null,
+        country: r.country || null,
+        currency: r.currency || DEFAULT_CURRENCY,
+        deal_size: Number(r.deal_size) || 0,
+        budget: Number(r.budget) || 0,
+        deal_stage: stages.includes(r.deal_stage) && r.deal_stage !== "All" ? r.deal_stage : "Lead",
+        lead_source: r.lead_source || null,
+        next_follow_up_date: /^\d{4}-\d{2}-\d{2}$/.test(r.next_follow_up_date || "") ? r.next_follow_up_date : null,
+        notes: r.notes || null,
+      }));
+    if (!valid.length) {
+      toast.error("No valid rows found. CSV needs 'name' and 'company' columns.");
+      return;
+    }
+    const { data, error } = await supabase.from("customers").insert(valid).select();
+    if (error) {
+      toast.error("Import failed");
+      return;
+    }
+    setCustomers((prev) => [...(data || []), ...prev]);
+    toast.success(`Imported ${data?.length ?? 0} customers`);
+  };
+
   const seedData = async () => {
     if (!user) return;
     const mockCustomers = [
@@ -137,11 +190,30 @@ const Customers = () => {
               <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground">Customers</h1>
               <p className="text-muted-foreground mt-2 text-lg">Manage your sales pipeline</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 flex-wrap">
               <Button variant="glow" onClick={() => navigate("/customers/new")}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Customer
               </Button>
+              <Button variant="outline" onClick={() => fileRef.current?.click()}>
+                <Upload className="mr-2 h-4 w-4" /> Import CSV
+              </Button>
+              {customers.length > 0 && (
+                <Button variant="outline" onClick={exportCsv}>
+                  <Download className="mr-2 h-4 w-4" /> Export
+                </Button>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) importCsv(f);
+                  e.target.value = "";
+                }}
+              />
               {customers.length === 0 && !loading && (
                 <Button variant="outline" onClick={seedData}>
                   Load Demo Data
@@ -188,7 +260,23 @@ const Customers = () => {
           </motion.div>
         )}
 
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex justify-end mb-3">
+          <div className="inline-flex rounded-lg border border-border bg-secondary/40 p-1">
+            {(["list", "board"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${view === v ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {v === "list" ? <List className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}
+                {v === "list" ? "List" : "Board"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={`flex flex-wrap gap-2 mb-6 ${view === "board" ? "hidden" : ""}`}>
           {stages.map((s) => {
             const count = s === "All" ? customers.length : customers.filter((c) => c.deal_stage === s).length;
             const active = stageFilter === s;
