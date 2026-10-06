@@ -5,7 +5,7 @@ import { Clock } from "lucide-react";
 
 type Row = { id: string; action_type: string; description: string | null; created_at: string };
 
-export function CustomerActivity({ customerId }: { customerId: string }) {
+export function CustomerActivity({ customerId, refreshKey = 0 }: { customerId: string; refreshKey?: number }) {
   const [rows, setRows] = useState<Row[] | null>(null);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export function CustomerActivity({ customerId }: { customerId: string }) {
       .order("created_at", { ascending: false })
       .limit(50)
       .then(({ data }) => setRows(data || []));
-  }, [customerId]);
+  }, [customerId, refreshKey]);
 
   if (!rows) return <div className="h-24 shimmer rounded-xl" />;
   if (!rows.length) return <p className="text-muted-foreground text-sm py-8 text-center">No activity for this customer yet.</p>;
@@ -33,7 +33,7 @@ export function CustomerActivity({ customerId }: { customerId: string }) {
               {new Date(r.created_at).toLocaleString()}
             </span>
           </div>
-          {r.description && <p className="text-sm text-muted-foreground mt-1">{r.description}</p>}
+          {r.description && <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap [overflow-wrap:anywhere]">{r.description}</p>}
         </Card>
       ))}
     </div>
