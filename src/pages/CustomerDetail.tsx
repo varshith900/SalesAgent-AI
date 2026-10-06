@@ -674,10 +674,11 @@ const CustomerDetail = () => {
               );
             })}
           </AnimatePresence>
+        </div>
         </TabsContent>
         <TabsContent value="activity"><CustomerActivity customerId={customer.id} /></TabsContent>
         </Tabs>
-        </div>
+
       </div>
     </AppLayout>
   );
