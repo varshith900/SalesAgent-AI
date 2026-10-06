@@ -1,3 +1,5 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CustomerActivity } from "@/components/CustomerActivity";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
@@ -544,6 +546,13 @@ const CustomerDetail = () => {
           )}
         </AnimatePresence>
 
+        <Tabs defaultValue="ai" className="w-full">
+        <TabsList className="mb-6 flex-wrap h-auto">
+          <TabsTrigger value="ai">AI Workspace</TabsTrigger>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview">
         {/* Customer Info Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {infoCards.map((info, i) => (
@@ -586,6 +595,8 @@ const CustomerDetail = () => {
           </motion.div>
         )}
 
+        </TabsContent>
+        <TabsContent value="ai">
         {/* Manual AI Tools */}
         <motion.div
           className="flex flex-wrap gap-2 mb-8"
@@ -663,6 +674,9 @@ const CustomerDetail = () => {
               );
             })}
           </AnimatePresence>
+        </TabsContent>
+        <TabsContent value="activity"><CustomerActivity customerId={customer.id} /></TabsContent>
+        </Tabs>
         </div>
       </div>
     </AppLayout>
