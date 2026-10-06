@@ -435,6 +435,14 @@ const Customers = () => {
                         <div className="flex items-center gap-1 justify-end">
                           <button
                             type="button"
+                            aria-label={`Edit ${customer.name}`}
+                            onClick={(e) => { e.stopPropagation(); setEditing(customer); }}
+                            className="p-2 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
                             aria-label={`Delete ${customer.name}`}
                             onClick={(e) => {
                               e.stopPropagation();
