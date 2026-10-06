@@ -7,3 +7,6 @@
 - [x] Add follow-up focus utility without changing workflows
 - [x] Verify desktop and mobile behavior
 - [x] Add a secure CRM-aware sales assistant with cloud-saved conversation history
+- [ ] Add email review composer while preserving automatic sending
+- [ ] Check and improve layouts across phone, tablet, and desktop sizes
+- [ ] Verify composer controls and existing page layouts

@@ -1,5 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomerActivity } from "@/components/CustomerActivity";
+import { EmailComposerDialog } from "@/components/EmailComposerDialog";
+import { parseEmailDraft } from "@/lib/email-draft";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
@@ -88,6 +90,8 @@ const CustomerDetail = () => {
   const [autoSendEmail, setAutoSendEmail] = useState(true);
   const [emailStatus, setEmailStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
   const [emailSentAt, setEmailSentAt] = useState<string | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [activityVersion, setActivityVersion] = useState(0);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -119,13 +123,10 @@ const CustomerDetail = () => {
     return response.data?.result || "";
   };
 
-  const sendEmail = async (emailContent: string, cust: Customer) => {
-    if (!cust.email || !user) return;
+  const sendEmail = async (emailContent: string, cust: Customer, edited?: { subject: string; body: string }) => {
+    if (!cust.email || !user) return false;
     setEmailStatus("sending");
-    let subject = `Follow-up from SalesAgent AI`;
-    const subjectMatch = emailContent.match(/Subject:\s*(.+)/i);
-    if (subjectMatch) subject = stripMarkdown(subjectMatch[1].trim());
-    const body = stripMarkdown(emailContent.replace(/Subject:\s*.+\n?/i, "").trim());
+    const { subject, body } = edited || parseEmailDraft(emailContent);
 
     try {
       const response = await supabase.functions.invoke("send-email", {
@@ -136,11 +137,14 @@ const CustomerDetail = () => {
       setEmailStatus("sent");
       setEmailSentAt(new Date().toLocaleString());
       toast.success(`Email sent to ${cust.email}!`);
-      await supabase.from("activity_log").insert({
+      const { error: logError } = await supabase.from("activity_log").insert({
         user_id: user.id, customer_id: cust.id,
         action_type: "email_sent",
-        description: `Email sent to ${cust.name} at ${cust.email}`,
+        description: `Email sent to ${cust.name} at ${cust.email}\nSubject: ${subject}\n\n${body}`,
       });
+      if (logError) toast.warning("Email sent, but activity history could not be updated.");
+      setActivityVersion((version) => version + 1);
+      return true;
     } catch (error: any) {
       setEmailStatus("failed");
       toast.error(`Email failed: ${error.message}`);
@@ -149,6 +153,7 @@ const CustomerDetail = () => {
         action_type: "email_failed",
         description: `Email to ${cust.name} failed: ${error.message}`,
       });
+      return false;
     }
   };
 
@@ -165,6 +170,8 @@ const CustomerDetail = () => {
         setResults((prev) => ({ ...prev, [steps[i]]: result }));
         if (steps[i] === "email" && autoSendEmail && customer.email) {
           await sendEmail(result, customer);
+        } else if (steps[i] === "email" && !autoSendEmail && customer.email) {
+          setComposerOpen(true);
         }
       }
       await supabase.from("activity_log").insert({
@@ -187,6 +194,11 @@ const CustomerDetail = () => {
     try {
       const result = await callAI(type, customer);
       setResults((prev) => ({ ...prev, [type]: result }));
+      if (type === "email") {
+        setEmailStatus("idle");
+        setEmailSentAt(null);
+        if (!autoSendEmail && customer.email) setComposerOpen(true);
+      }
       await supabase.from("activity_log").insert({
         user_id: user.id, customer_id: customer.id,
         action_type: `ai_${type}`,
@@ -488,7 +500,7 @@ const CustomerDetail = () => {
             </Button>
             {customer.email && (
               <motion.div
-                className="flex items-center gap-3"
+                className="flex flex-wrap items-center gap-3"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
@@ -500,7 +512,7 @@ const CustomerDetail = () => {
                 <AnimatePresence>
                   {emailStatus === "sent" && (
                     <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}>
-                      <Badge className="bg-success/20 text-success gap-1"><CheckCircle2 className="h-3 w-3" /> Sent {emailSentAt}</Badge>
+                      <Badge className="bg-success/20 text-success gap-1 whitespace-normal"><CheckCircle2 className="h-3 w-3 shrink-0" /> Sent {emailSentAt}</Badge>
                     </motion.div>
                   )}
                   {emailStatus === "failed" && (
@@ -637,7 +649,7 @@ const CustomerDetail = () => {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.5, ease: "easeOut" }}
                 >
-                  <Card className={`glass rounded-xl p-6 shadow-card relative overflow-hidden`}>
+                  <Card className={`glass rounded-xl p-4 sm:p-6 shadow-card relative overflow-hidden`}>
                     {/* Gradient accent strip */}
                     <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${section.gradient}`} />
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
@@ -648,22 +660,23 @@ const CustomerDetail = () => {
                         <h3 className="font-display font-semibold text-foreground text-base sm:text-lg break-words">{section.title}</h3>
                       </div>
                       <div className="flex gap-1 shrink-0">
-                        <Button variant="ghost" size="icon" onClick={() => copyToClipboard(content, section.title)} className="hover:text-primary">
+                        <Button variant="ghost" size="icon" aria-label={`Copy ${section.title}`} title={`Copy ${section.title}`} onClick={() => copyToClipboard(content, section.title)} className="hover:text-primary">
                           <Copy className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => downloadPdf(content, `${customer.name}-${section.key}.pdf`, section.key)} className="hover:text-primary">
+                        <Button variant="ghost" size="icon" aria-label={`Download ${section.title} PDF`} title={`Download ${section.title} PDF`} onClick={() => downloadPdf(content, `${customer.name}-${section.key}.pdf`, section.key)} className="hover:text-primary">
                           <Download className="h-4 w-4" />
                         </Button>
                         {section.key === "email" && customer.email && emailStatus !== "sent" && (
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => sendEmail(content, customer)}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setComposerOpen(true)}
                             disabled={emailStatus === "sending"}
-                            title={`Send to ${customer.email}`}
-                            className="hover:text-primary"
+                            title={`Review email to ${customer.email}`}
+                            className="gap-2 hover:text-primary"
                           >
                             {emailStatus === "sending" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                            Review & send
                           </Button>
                         )}
                       </div>
@@ -676,8 +689,9 @@ const CustomerDetail = () => {
           </AnimatePresence>
         </div>
         </TabsContent>
-        <TabsContent value="activity"><CustomerActivity customerId={customer.id} /></TabsContent>
+        <TabsContent value="activity"><CustomerActivity customerId={customer.id} refreshKey={activityVersion} /></TabsContent>
         </Tabs>
+        <EmailComposerDialog open={composerOpen} onOpenChange={setComposerOpen} customer={customer} draft={results.email || ""} onSend={(subject, body) => sendEmail(results.email || "", customer, { subject, body })} />
 
       </div>
     </AppLayout>
